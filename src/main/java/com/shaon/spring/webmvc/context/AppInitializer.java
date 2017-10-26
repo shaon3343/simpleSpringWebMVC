@@ -5,20 +5,29 @@ import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
+import java.util.EnumSet;
+
+import static javax.servlet.DispatcherType.*;
 
 /**
  * Created by ashfak on 10/25/17.
  */
 public class AppInitializer implements WebApplicationInitializer {
+    private final EnumSet<DispatcherType> dispatcherTypes = EnumSet.of(REQUEST, FORWARD, ERROR, INCLUDE);
+
+
     @Override
     public void onStartup(ServletContext container) throws ServletException {
         initializeListeners(container);
         initializeServletContext(container);
+        initializeSpringSecurityFilterChain(container);
     }
 
     private void initializeServletContext(ServletContext container) {
@@ -42,5 +51,10 @@ public class AppInitializer implements WebApplicationInitializer {
         container.addListener(new ContextLoaderListener(applicationContext));
         container.addListener(new RequestContextListener());
         container.addListener(new HttpSessionEventPublisher());
+    }
+
+    private void initializeSpringSecurityFilterChain(ServletContext container) {
+        container.addFilter("springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
+                .addMappingForUrlPatterns(dispatcherTypes, false, "/*");
     }
 }
