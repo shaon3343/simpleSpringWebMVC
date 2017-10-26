@@ -1,6 +1,9 @@
 package com.shaon.spring.webmvc.context;
 
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
@@ -14,6 +17,7 @@ import javax.servlet.ServletRegistration;
 public class AppInitializer implements WebApplicationInitializer {
     @Override
     public void onStartup(ServletContext container) throws ServletException {
+        initializeListeners(container);
         initializeServletContext(container);
     }
 
@@ -30,5 +34,13 @@ public class AppInitializer implements WebApplicationInitializer {
         DispatcherServlet dispatcher = new DispatcherServlet(dispatcherContext);
         dispatcher.setThrowExceptionIfNoHandlerFound(true);
         return dispatcher;
+    }
+
+    private void initializeListeners(ServletContext container) {
+        AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext();
+        applicationContext.register(WebApplicationContext.class);
+        container.addListener(new ContextLoaderListener(applicationContext));
+        container.addListener(new RequestContextListener());
+        container.addListener(new HttpSessionEventPublisher());
     }
 }
